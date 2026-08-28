@@ -1,0 +1,15 @@
+{
+  "name": "Coach Cleaning Photo Record",
+  "short_name": "Coach Photos",
+  "description": "Before/after cleaning photo record for coach interiors. All data stays on the phone.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#1d4ed8",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

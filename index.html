@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Coach Cleaning Photo Record</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1d4ed8">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root{
+  --bg:#ffffff; --surf:#f1f4f8; --surf2:#e4e9f0; --line:#c9d2dd;
+  --ink:#0e1419; --mut:#5b6673;
+  --before:#b45309; --before-bg:#fff5e6;
+  --after:#15803d; --after-bg:#e9f7ee;
+  --pri:#1d4ed8; --danger:#b91c1c;
+  --tap:56px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg); color:var(--ink);
+  padding-bottom:calc(72px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:contain;
+}
+h1,h2,h3{margin:0 0 .5rem}
+button{font:inherit;color:inherit;cursor:pointer}
+.hide{display:none!important}
+
+/* ---------- header ---------- */
+header{
+  position:sticky;top:0;z-index:20;background:var(--bg);
+  border-bottom:2px solid var(--line);padding:.5rem .75rem;
+  padding-top:calc(.5rem + env(safe-area-inset-top));
+}
+.hrow{display:flex;align-items:center;gap:.5rem}
+.trainbadge{font-weight:700;font-size:1.05rem;letter-spacing:.02em}
+.trainbadge small{display:block;font-weight:400;font-size:.72rem;color:var(--mut);letter-spacing:0}
+.spacer{flex:1}
+.iconbtn{
+  background:var(--surf);border:1px solid var(--line);border-radius:10px;
+  min-width:44px;height:40px;padding:0 .6rem;font-size:.85rem;font-weight:600;
+}
+
+/* phase toggle */
+.phase{display:flex;gap:0;margin-top:.55rem;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.phase button{
+  flex:1;height:48px;border:0;background:var(--surf);font-weight:700;font-size:1rem;
+  letter-spacing:.04em;color:var(--mut);
+}
+.phase button[aria-pressed="true"]{color:#fff}
+#pB[aria-pressed="true"]{background:var(--before)}
+#pA[aria-pressed="true"]{background:var(--after)}
+
+/* ---------- generic ---------- */
+main{padding:.75rem}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:.85rem;margin-bottom:.75rem}
+label.fld{display:block;font-size:.78rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--mut);margin-bottom:.3rem}
+input[type=text],input[type=date],input[type=tel],textarea{
+  width:100%;padding:.7rem .8rem;font:inherit;background:#fff;
+  border:2px solid var(--line);border-radius:10px;color:var(--ink)
+}
+input:focus,textarea:focus{outline:none;border-color:var(--pri)}
+#coach{font-size:1.6rem;font-weight:700;letter-spacing:.14em;text-align:center;padding:.55rem}
+.btn{
+  display:block;width:100%;min-height:var(--tap);border:0;border-radius:12px;
+  background:var(--pri);color:#fff;font-weight:700;font-size:1.05rem;padding:.8rem
+}
+.btn.ghost{background:var(--surf2);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--danger)}
+.btn+.btn{margin-top:.5rem}
+.btn:disabled{opacity:.45}
+
+/* chip rows */
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:.25rem;-webkit-overflow-scrolling:touch}
+.chip{
+  border:2px solid var(--line);background:#fff;border-radius:999px;
+  padding:.55rem .85rem;font-size:.95rem;font-weight:600;white-space:nowrap;min-height:44px
+}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.num{min-width:48px;text-align:center;padding:.55rem .2rem}
+.grp{margin-bottom:.7rem}
+.grp:last-child{margin-bottom:0}
+
+/* shutter */
+.shutter{
+  display:flex;align-items:center;justify-content:center;gap:.6rem;
+  width:100%;min-height:76px;border:0;border-radius:16px;color:#fff;
+  font-size:1.2rem;font-weight:800;letter-spacing:.05em
+}
+.shutter.b{background:var(--before)}
+.shutter.a{background:var(--after)}
+.shutter:disabled{opacity:.4}
+
+.now{font-size:.9rem;color:var(--mut);text-align:center;margin:.55rem 0 .2rem}
+.now b{color:var(--ink)}
+
+/* thumbs */
+.strip{display:flex;gap:.4rem;overflow-x:auto;padding:.25rem 0}
+.strip img{height:78px;width:78px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:0 0 auto}
+
+/* pair list */
+.row{
+  display:flex;gap:.65rem;align-items:center;width:100%;text-align:left;
+  background:#fff;border:2px solid var(--line);border-radius:12px;padding:.5rem;margin-bottom:.5rem
+}
+.row img{width:64px;height:64px;object-fit:cover;border-radius:8px;flex:0 0 auto;background:var(--surf2)}
+.row .meta{flex:1;min-width:0}
+.row .t{font-weight:700;font-size:.95rem}
+.row .s{font-size:.8rem;color:var(--mut)}
+.row .tick{font-size:1.35rem;font-weight:800;flex:0 0 auto;padding-right:.25rem}
+.row.done{border-color:var(--after);background:var(--after-bg)}
+.row.done .tick{color:var(--after)}
+.row.pend .tick{color:var(--line)}
+.coachhead{font-weight:800;font-size:.95rem;letter-spacing:.05em;margin:.9rem 0 .45rem;color:var(--mut)}
+
+.empty{text-align:center;color:var(--mut);padding:2.5rem 1rem;font-size:.95rem}
+.count{display:flex;gap:.5rem;margin-bottom:.75rem}
+.count div{flex:1;background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:.6rem;text-align:center}
+.count b{display:block;font-size:1.5rem;line-height:1.1}
+.count span{font-size:.72rem;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+
+/* nav */
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
+  background:var(--bg);border-top:2px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)
+}
+nav button{flex:1;border:0;background:none;padding:.6rem .2rem;font-size:.72rem;font-weight:700;
+  color:var(--mut);letter-spacing:.04em;text-transform:uppercase}
+nav button[aria-current="true"]{color:var(--pri);box-shadow:inset 0 3px 0 var(--pri)}
+nav .n{display:block;font-size:1.15rem;margin-bottom:.1rem;font-weight:800}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(8,12,18,.86);
+  display:flex;flex-direction:column;padding:1rem;padding-top:calc(1rem + env(safe-area-inset-top))}
+.modal img{flex:1;min-height:0;width:100%;object-fit:contain;border-radius:10px}
+.modal .mh{color:#fff;font-weight:700;margin-bottom:.6rem;font-size:1rem}
+.modal .mh small{display:block;font-weight:400;opacity:.75;font-size:.82rem}
+.modal .mb{margin-top:.75rem;display:flex;flex-direction:column;gap:.5rem}
+
+.note{font-size:.82rem;color:var(--mut);margin-top:.5rem}
+.warn{background:#fff8e1;border:1px solid #e6cf8a;border-radius:10px;padding:.6rem .7rem;font-size:.85rem;margin-bottom:.75rem}
+.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:60;
+  background:var(--ink);color:#fff;padding:.65rem 1rem;border-radius:10px;font-size:.9rem;
+  max-width:88vw;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.3)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="trainbadge" id="tb">—<small id="tbs">no rake open</small></div>
+    <div class="spacer"></div>
+    <button class="iconbtn" id="btnSettings">Areas</button>
+    <button class="iconbtn" id="btnRake">Rake</button>
+  </div>
+  <div class="phase" id="phaseWrap">
+    <button id="pB" aria-pressed="true">BEFORE</button>
+    <button id="pA" aria-pressed="false">AFTER</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ SETUP ============ -->
+<section id="vSetup" class="hide">
+  <div class="card">
+    <h2>Open a rake</h2>
+    <div class="grp">
+      <label class="fld" for="train">Train number</label>
+      <input type="tel" id="train" inputmode="numeric" maxlength="6" placeholder="12656">
+    </div>
+    <div class="grp">
+      <label class="fld" for="sdate">Date</label>
+      <input type="date" id="sdate">
+    </div>
+    <div class="grp">
+      <label class="fld" for="sse">Supervisor name (optional)</label>
+      <input type="text" id="sse" placeholder="SSE / JE name">
+    </div>
+    <button class="btn" id="btnOpen">Open rake</button>
+    <p class="note">Entered once. Every photo in this rake carries the train number automatically.</p>
+  </div>
+  <div class="card" id="resumeCard">
+    <h3>Current rake</h3>
+    <div id="resumeInfo" class="note"></div>
+    <button class="btn ghost" id="btnResume" style="margin-top:.6rem">Continue</button>
+  </div>
+</section>
+
+<!-- ============ CAPTURE (BEFORE) ============ -->
+<section id="vCapture" class="hide">
+  <div class="card">
+    <label class="fld" for="coach">Coach number</label>
+    <input type="tel" id="coach" inputmode="numeric" maxlength="6" placeholder="000000">
+    <p class="note" id="coachCount">Type once — it stays until you change it.</p>
+  </div>
+
+  <div class="card">
+    <div class="grp">
+      <label class="fld">Area</label>
+      <div class="chips" id="areaChips"></div>
+    </div>
+    <div class="grp" id="instGrp">
+      <label class="fld">Which one</label>
+      <div class="chips scroll" id="instChips"></div>
+    </div>
+    <div class="grp">
+      <label class="fld">Item</label>
+      <div class="chips" id="subChips"></div>
+    </div>
+  </div>
+
+  <p class="now" id="nowLine"></p>
+  <button class="shutter b" id="shutter">📷 TAKE BEFORE PHOTO</button>
+  <div class="strip" id="strip"></div>
+</section>
+
+<!-- ============ AFTER: pair list ============ -->
+<section id="vPairs" class="hide">
+  <div class="count">
+    <div><b id="cTotal">0</b><span>before shots</span></div>
+    <div><b id="cDone">0</b><span>paired</span></div>
+    <div><b id="cPend">0</b><span>pending</span></div>
+  </div>
+  <div id="pairList"></div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section id="vGallery" class="hide">
+  <div class="count">
+    <div><b id="gB">0</b><span>before</span></div>
+    <div><b id="gA">0</b><span>after</span></div>
+    <div><b id="gS">0</b><span>MB stored</span></div>
+  </div>
+  <div id="galList"></div>
+</section>
+
+<!-- ============ EXPORT ============ -->
+<section id="vExport" class="hide">
+  <div class="warn" id="backupWarn">
+    <b>Back up before you leave the rake.</b> The photos live only on this phone until you
+    export. Do it at the end of the before round, not just at the end of the day.
+  </div>
+  <div class="card">
+    <h3>1 · Worklist for the contractor</h3>
+    <p class="note">Every before photo, grouped by coach, with a blank column for action taken.
+      Opens as a page — use your browser's <b>Share → Print → Save as PDF</b> to send it on WhatsApp.</p>
+    <button class="btn ghost" id="btnWorklist" style="margin-top:.6rem">Open worklist</button>
+  </div>
+  <div class="card">
+    <h3>2 · Send to CMIS</h3>
+    <p class="note">All photos, correctly named, plus the manifest the deck generator reads.</p>
+    <button class="btn" id="btnShare" style="margin-top:.6rem">Share ZIP</button>
+    <button class="btn ghost" id="btnZip">Download ZIP</button>
+  </div>
+  <div class="card">
+    <h3>Finish rake</h3>
+    <p class="note">Clears this rake from the phone. Only do this once CMIS confirms they have the ZIP.</p>
+    <button class="btn danger" id="btnClear" style="margin-top:.6rem">Clear this rake</button>
+  </div>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section id="vSettings" class="hide">
+  <div class="card">
+    <h3>Areas and items</h3>
+    <p class="note">One area per line: <code>Area: item, item, item</code></p>
+    <textarea id="areaText" rows="12" style="margin-top:.5rem;font-family:ui-monospace,Consolas,monospace;font-size:.85rem"></textarea>
+    <button class="btn" id="btnSaveAreas" style="margin-top:.6rem">Save</button>
+    <button class="btn ghost" id="btnResetAreas">Reset to standard list</button>
+  </div>
+</section>
+
+</main>
+
+<nav>
+  <button data-v="capture" aria-current="true"><span class="n">📷</span>Capture</button>
+  <button data-v="pairs"><span class="n">☑</span>Pairs</button>
+  <button data-v="gallery"><span class="n">▦</span>Photos</button>
+  <button data-v="export"><span class="n">⇪</span>Export</button>
+</nav>
+
+<input type="file" id="picker" accept="image/*" capture="environment" class="hide">
+
+<script>
+"use strict";
+
+/* ============================================================
+   Coach Cleaning Photo Record
+   Everything stays on this phone. No server, no upload.
+   ============================================================ */
+
+const DEFAULT_AREAS = {
+  "Toilet":     ["General","Pan","Washbasin","Wall","Floor"],
+  "Entrance":   ["General","Washbasin","Chequered plate","Dustbin","Panels","Floor","Vestibule area"],
+  "Berth area": ["General","Berth rexine","Walkway","Under-berth floor","Pillar corners","Panels"],
+  "Exterior":   ["General","Door corners","Window shutters","End walls"],
+  "Biotank":    ["General"]
+};
+const MAX_EDGE = 1600, JPEG_Q = 0.82;
+
+let AREAS = {};
+let S = { phase:"BEFORE", coachNo:"", area:"Toilet", instance:1, sub:"General" };
+let RAKE = null;            // {trainNo, date, sse, id}
+let pairTarget = null;      // before-shot id we are matching
+let reshootId = null;       // shot id being replaced
+let view = "capture";
+const urlCache = new Map();
+
+/* ---------------- IndexedDB ---------------- */
+let _db;
+function db(){
+  if(_db) return Promise.resolve(_db);
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open("coachphoto",1);
+    r.onupgradeneeded = e=>{
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains("shots")){
+        const s = d.createObjectStore("shots",{keyPath:"id"});
+        s.createIndex("phase","phase");
+      }
+      if(!d.objectStoreNames.contains("meta")) d.createObjectStore("meta",{keyPath:"k"});
+    };
+    r.onsuccess = ()=>{ _db = r.result; res(_db); };
+    r.onerror = ()=>rej(r.error);
+  });
+}
+function tx(store,mode){ return db().then(d=>d.transaction(store,mode).objectStore(store)); }
+function req(r){ return new Promise((res,rej)=>{ r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+const putShot   = s  => tx("shots","readwrite").then(o=>req(o.put(s)));
+const delShot   = id => tx("shots","readwrite").then(o=>req(o.delete(id)));
+const allShots  = () => tx("shots","readonly").then(o=>req(o.getAll()));
+const getMeta   = k  => tx("meta","readonly").then(o=>req(o.get(k))).then(v=>v&&v.v);
+const setMeta   = (k,v)=> tx("meta","readwrite").then(o=>req(o.put({k,v})));
+
+/* ---------------- small helpers ---------------- */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const pad2 = n => String(n).padStart(2,"0");
+function fmtDT(d){ return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+function isoDT(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; }
+function slug(s){ return String(s).toUpperCase().replace(/[^A-Z0-9]+/g,"-").replace(/^-|-$/g,""); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function toast(msg,ms){
+  const t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(), ms||2400);
+}
+function objURL(shot){
+  if(urlCache.has(shot.id)) return urlCache.get(shot.id);
+  const u = URL.createObjectURL(shot.blob);
+  urlCache.set(shot.id,u);
+  return u;
+}
+function labelOf(s){
+  return `${s.trainNo} · ${s.coachNo} · ${slug(s.area)}-${s.instance} · ${slug(s.sub)} · ${s.phase}`;
+}
+function shortOf(s){ return `${slug(s.area)}-${s.instance} · ${s.sub}`; }
+function nameOf(s){
+  return `${s.trainNo}_${s.coachNo}_${slug(s.area)}-${s.instance}_${slug(s.sub)}_${s.phase}.jpg`;
+}
+
+/* ---------------- EXIF capture time ----------------
+   Read DateTimeOriginal from the camera's own JPEG *before* we
+   re-encode it, because the canvas re-encode drops all EXIF.      */
+async function exifDate(file){
+  try{
+    const dv = new DataView(await file.slice(0, 256*1024).arrayBuffer());
+    if(dv.byteLength < 8 || dv.getUint16(0) !== 0xFFD8) return null;
+    let off = 2;
+    while(off + 4 < dv.byteLength){
+      const marker = dv.getUint16(off);
+      if((marker & 0xFF00) !== 0xFF00) break;
+      const size = dv.getUint16(off+2);
+      if(size < 2) break;
+      if(marker === 0xFFE1 && off+10 < dv.byteLength && dv.getUint32(off+4) === 0x45786966){
+        const tiff = off + 10;
+        if(tiff + 8 > dv.byteLength) return null;
+        const le = dv.getUint16(tiff) === 0x4949;
+        const ifd0 = tiff + dv.getUint32(tiff+4, le);
+        const readIFD = base => {
+          const out = {};
+          if(base + 2 > dv.byteLength) return out;
+          const n = dv.getUint16(base, le);
+          for(let i=0;i<n;i++){
+            const e = base + 2 + i*12;
+            if(e + 12 > dv.byteLength) break;
+            out[dv.getUint16(e,le)] = { cnt: dv.getUint32(e+4,le), vOff: e+8 };
+          }
+          return out;
+        };
+        const str = ent => {
+          const p = ent.cnt > 4 ? tiff + dv.getUint32(ent.vOff, le) : ent.vOff;
+          let s = "";
+          for(let i=0;i<ent.cnt-1 && p+i<dv.byteLength;i++){
+            const c = dv.getUint8(p+i); if(!c) break; s += String.fromCharCode(c);
+          }
+          return s;
+        };
+        const d0 = readIFD(ifd0);
+        let ds = d0[0x0132] ? str(d0[0x0132]) : null;
+        if(d0[0x8769]){
+          const ex = readIFD(tiff + dv.getUint32(d0[0x8769].vOff, le));
+          if(ex[0x9003]) ds = str(ex[0x9003]);
+          else if(ex[0x9004]) ds = str(ex[0x9004]);
+        }
+        if(ds){
+          const m = ds.match(/(\d{4})[:-](\d{2})[:-](\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+          if(m){
+            const d = new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]);
+            if(!isNaN(d)) return d;
+          }
+        }
+        return null;
+      }
+      off += 2 + size;
+    }
+  }catch(e){ /* fall through to device clock */ }
+  return null;
+}
+
+/* ---------------- image: downscale + burn label ---------------- */
+async function processImage(file, text){
+  let bmp;
+  try{ bmp = await createImageBitmap(file, {imageOrientation:"from-image"}); }
+  catch(e){ bmp = await createImageBitmap(file); }
+  const scale = Math.min(1, MAX_EDGE / Math.max(bmp.width, bmp.height));
+  const w = Math.round(bmp.width*scale), h = Math.round(bmp.height*scale);
+  const cv = document.createElement("canvas");
+  cv.width = w; cv.height = h;
+  const cx = cv.getContext("2d");
+  cx.drawImage(bmp, 0, 0, w, h);
+  bmp.close && bmp.close();
+
+  // label band along the bottom
+  const padX = Math.round(w*0.020);
+  let fs = Math.max(13, Math.round(w*0.029));
+  const fit = () => { cx.font = `700 ${fs}px system-ui, Arial, sans-serif`; return cx.measureText(text).width; };
+  while(fit() > w - padX*2 && fs > 10) fs -= 1;
+  const bandH = Math.round(fs*2.1);
+  cx.fillStyle = "rgba(0,0,0,0.66)";
+  cx.fillRect(0, h - bandH, w, bandH);
+  cx.fillStyle = "#ffffff";
+  cx.textBaseline = "middle";
+  cx.fillText(text, padX, h - bandH/2 + 1);
+
+  const blob = await new Promise(r => cv.toBlob(r, "image/jpeg", JPEG_Q));
+  return { blob, w, h };
+}
+
+/* ---------------- areas ---------------- */
+function areasToText(a){
+  return Object.entries(a).map(([k,v])=>`${k}: ${v.join(", ")}`).join("\n");
+}
+function textToAreas(t){
+  const out = {};
+  t.split(/\r?\n/).forEach(line=>{
+    const i = line.indexOf(":");
+    if(i < 1) return;
+    const k = line.slice(0,i).trim();
+    const v = line.slice(i+1).split(",").map(s=>s.trim()).filter(Boolean);
+    if(k && v.length) out[k] = v;
+  });
+  return Object.keys(out).length ? out : null;
+}
+
+/* ---------------- rendering: capture screen ---------------- */
+function renderChips(){
+  const ac = $("#areaChips"); ac.innerHTML = "";
+  Object.keys(AREAS).forEach(a=>{
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = a;
+    b.setAttribute("aria-pressed", String(a === S.area));
+    b.onclick = ()=>{
+      S.area = a;
+      if(!AREAS[a].includes(S.sub)) S.sub = AREAS[a][0];
+      saveState(); renderChips(); renderNow();
+    };
+    ac.appendChild(b);
+  });
+
+  const ic = $("#instChips"); ic.innerHTML = "";
+  for(let i=1;i<=10;i++){
+    const b = document.createElement("button");
+    b.className = "chip num"; b.textContent = i;
+    b.setAttribute("aria-pressed", String(i === S.instance));
+    b.onclick = ()=>{ S.instance = i; saveState(); renderChips(); renderNow(); };
+    ic.appendChild(b);
+  }
+
+  const sc = $("#subChips"); sc.innerHTML = "";
+  (AREAS[S.area] || ["General"]).forEach(s=>{
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = s;
+    b.setAttribute("aria-pressed", String(s === S.sub));
+    b.onclick = ()=>{ S.sub = s; saveState(); renderChips(); renderNow(); };
+    sc.appendChild(b);
+  });
+}
+function renderNow(){
+  const ok = /^\d{6}$/.test(S.coachNo);
+  $("#shutter").disabled = !ok;
+  $("#nowLine").innerHTML = ok
+    ? `Next shot: <b>${esc(S.coachNo)}</b> · <b>${esc(slug(S.area))}-${S.instance}</b> · <b>${esc(S.sub)}</b>`
+    : `Enter the 6-digit coach number to start`;
+}
+async function renderStrip(){
+  const all = await allShots();
+  const mine = all.filter(s => s.coachNo === S.coachNo && s.phase === "BEFORE")
+                  .sort((a,b)=> b.ts - a.ts).slice(0,12);
+  const st = $("#strip"); st.innerHTML = "";
+  mine.forEach(s=>{
+    const im = document.createElement("img");
+    im.src = objURL(s); im.alt = shortOf(s); im.title = shortOf(s);
+    im.onclick = ()=> openShot(s.id);
+    st.appendChild(im);
+  });
+  const n = all.filter(s => s.coachNo === S.coachNo && s.phase === "BEFORE").length;
+  $("#coachCount").textContent = /^\d{6}$/.test(S.coachNo)
+    ? `${n} before photo${n===1?"":"s"} on this coach so far.`
+    : "Type once — it stays until you change it.";
+}
+
+/* ---------------- rendering: pair list ---------------- */
+async function renderPairs(){
+  const all = await allShots();
+  const before = all.filter(s => s.phase === "BEFORE").sort((a,b)=> a.ts - b.ts);
+  const afters = all.filter(s => s.phase === "AFTER");
+  const doneSet = new Set(afters.map(s => s.pairId).filter(Boolean));
+
+  $("#cTotal").textContent = before.length;
+  $("#cDone").textContent  = before.filter(s=>doneSet.has(s.id)).length;
+  $("#cPend").textContent  = before.filter(s=>!doneSet.has(s.id)).length;
+
+  const wrap = $("#pairList"); wrap.innerHTML = "";
+  if(!before.length){
+    wrap.innerHTML = `<p class="empty">No before photos yet.<br>Switch to BEFORE and start the first round.</p>`;
+    return;
+  }
+  const byCoach = {};
+  before.forEach(s => (byCoach[s.coachNo] = byCoach[s.coachNo] || []).push(s));
+
+  Object.keys(byCoach).sort().forEach(coach=>{
+    const pend = byCoach[coach].filter(s=>!doneSet.has(s.id)).length;
+    const h = document.createElement("div");
+    h.className = "coachhead";
+    h.textContent = `COACH ${coach} — ${pend ? pend+" pending" : "complete"}`;
+    wrap.appendChild(h);
+
+    byCoach[coach].forEach(s=>{
+      const done = doneSet.has(s.id);
+      const b = document.createElement("button");
+      b.className = "row " + (done ? "done" : "pend");
+      b.innerHTML =
+        `<img src="${objURL(s)}" alt="">` +
+        `<span class="meta"><span class="t">${esc(shortOf(s))}</span>` +
+        `<span class="s">${done ? "after photo taken" : "tap to take the after photo"}</span></span>` +
+        `<span class="tick">${done ? "✓" : "○"}</span>`;
+      b.onclick = ()=> done ? openShot(s.id) : startPair(s);
+      wrap.appendChild(b);
+    });
+  });
+}
+
+/* ---------------- rendering: gallery ---------------- */
+async function renderGallery(){
+  const all = await allShots();
+  const bytes = all.reduce((n,s)=> n + (s.blob.size||0), 0);
+  $("#gB").textContent = all.filter(s=>s.phase==="BEFORE").length;
+  $("#gA").textContent = all.filter(s=>s.phase==="AFTER").length;
+  $("#gS").textContent = (bytes/1048576).toFixed(0);
+
+  const wrap = $("#galList"); wrap.innerHTML = "";
+  if(!all.length){ wrap.innerHTML = `<p class="empty">No photos yet.</p>`; return; }
+
+  const byCoach = {};
+  all.sort((a,b)=>a.ts-b.ts).forEach(s => (byCoach[s.coachNo] = byCoach[s.coachNo] || []).push(s));
+  Object.keys(byCoach).sort().forEach(coach=>{
+    const h = document.createElement("div");
+    h.className = "coachhead";
+    h.textContent = `COACH ${coach} — ${byCoach[coach].length} photos`;
+    wrap.appendChild(h);
+    byCoach[coach].forEach(s=>{
+      const b = document.createElement("button");
+      b.className = "row";
+      b.innerHTML =
+        `<img src="${objURL(s)}" alt="">` +
+        `<span class="meta"><span class="t">${esc(shortOf(s))}</span>` +
+        `<span class="s">${s.phase} · ${esc(fmtDT(new Date(s.ts)))}</span></span>`;
+      b.onclick = ()=> openShot(s.id);
+      wrap.appendChild(b);
+    });
+  });
+}
+
+/* ---------------- full-screen shot viewer ---------------- */
+async function openShot(id){
+  const all = await allShots();
+  const s = all.find(x=>x.id===id);
+  if(!s) return;
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML =
+    `<div class="mh">${esc(s.coachNo)} · ${esc(shortOf(s))}` +
+    `<small>${s.phase} · ${esc(fmtDT(new Date(s.ts)))}</small></div>` +
+    `<img src="${objURL(s)}" alt="">` +
+    `<div class="mb">` +
+      `<button class="btn ghost" data-a="reshoot">Re-take this photo</button>` +
+      `<button class="btn danger" data-a="del">Delete</button>` +
+      `<button class="btn ghost" data-a="close">Close</button>` +
+    `</div>`;
+  m.onclick = async e=>{
+    const a = e.target.dataset && e.target.dataset.a;
+    if(!a) return;
+    if(a === "close"){ m.remove(); }
+    if(a === "del"){
+      if(confirm("Delete this photo?")){
+        urlCache.delete(s.id); await delShot(s.id); m.remove(); refresh();
+      }
+    }
+    if(a === "reshoot"){
+      reshootId = s.id; pairTarget = s.pairId || null;
+      S.coachNo = s.coachNo; S.area = s.area; S.instance = s.instance; S.sub = s.sub; S.phase = s.phase;
+      saveState(); m.remove(); $("#picker").click();
+    }
+  };
+  document.body.appendChild(m);
+}
+
+/* ---------------- pairing ---------------- */
+function startPair(beforeShot){
+  pairTarget = beforeShot.id; reshootId = null;
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML =
+    `<div class="mh">Match this shot — ${esc(beforeShot.coachNo)} · ${esc(shortOf(beforeShot))}` +
+    `<small>Frame the after photo the same way, then shoot.</small></div>` +
+    `<img src="${objURL(beforeShot)}" alt="">` +
+    `<div class="mb">` +
+      `<button class="btn" data-a="go" style="background:var(--after)">📷 TAKE AFTER PHOTO</button>` +
+      `<button class="btn ghost" data-a="close">Cancel</button>` +
+    `</div>`;
+  m.onclick = e=>{
+    const a = e.target.dataset && e.target.dataset.a;
+    if(a === "close"){ pairTarget = null; m.remove(); }
+    if(a === "go"){
+      S.coachNo = beforeShot.coachNo; S.area = beforeShot.area;
+      S.instance = beforeShot.instance; S.sub = beforeShot.sub;
+      saveState(); m.remove(); $("#picker").click();
+    }
+  };
+  document.body.appendChild(m);
+}
+
+/* ---------------- capture ---------------- */
+$("#picker").addEventListener("change", async e=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if(!file) return;
+  const btn = $("#shutter");
+  btn.disabled = true; btn.textContent = "Saving…";
+  try{
+    const when = (await exifDate(file)) || new Date(file.lastModified || Date.now());
+    const draft = {
+      trainNo: RAKE.trainNo, coachNo: S.coachNo, area: S.area,
+      instance: S.instance, sub: S.sub, phase: S.phase
+    };
+    const { blob, w, h } = await processImage(file, `${labelOf(draft)} · ${fmtDT(when)}`);
+    if(reshootId){ urlCache.delete(reshootId); await delShot(reshootId); }
+    const shot = Object.assign(draft, {
+      id: uid(), blob, w, h, ts: when.getTime(),
+      pairId: S.phase === "AFTER" ? pairTarget : null,
+      sse: RAKE.sse || "", rakeDate: RAKE.date
+    });
+    await putShot(shot);
+    toast(S.phase === "AFTER" ? "After photo saved and paired" : "Before photo saved");
+  }catch(err){
+    console.error(err);
+    alert("Could not save that photo — please take it again.\n\n" + err.message);
+  }finally{
+    reshootId = null; pairTarget = null;
+    btn.textContent = S.phase === "BEFORE" ? "📷 TAKE BEFORE PHOTO" : "📷 TAKE AFTER PHOTO";
+    renderNow(); refresh();
+  }
+});
+$("#shutter").onclick = ()=>{ reshootId = null; pairTarget = null; $("#picker").click(); };
+
+/* ---------------- worklist ---------------- */
+async function buildWorklist(){
+  const all = await allShots();
+  const before = all.filter(s=>s.phase==="BEFORE").sort((a,b)=>a.ts-b.ts);
+  if(!before.length){ alert("No before photos yet."); return; }
+
+  const thumbs = await Promise.all(before.map(async s=>{
+    const bmp = await createImageBitmap(s.blob);
+    const sc = 320 / Math.max(bmp.width, bmp.height);
+    const cv = document.createElement("canvas");
+    cv.width = Math.round(bmp.width*sc); cv.height = Math.round(bmp.height*sc);
+    cv.getContext("2d").drawImage(bmp,0,0,cv.width,cv.height);
+    bmp.close && bmp.close();
+    return cv.toDataURL("image/jpeg", 0.7);
+  }));
+
+  const byCoach = {};
+  before.forEach((s,i)=> (byCoach[s.coachNo] = byCoach[s.coachNo] || []).push({s, t:thumbs[i]}));
+
+  let rows = "";
+  Object.keys(byCoach).sort().forEach(coach=>{
+    rows += `<tr class="ch"><td colspan="4">COACH ${esc(coach)}</td></tr>`;
+    byCoach[coach].forEach(({s,t},i)=>{
+      rows += `<tr><td class="n">${i+1}</td><td><img src="${t}"></td>` +
+              `<td><b>${esc(s.area)} — ${s.instance}</b><br>${esc(s.sub)}` +
+              `<br><span class="tm">${esc(fmtDT(new Date(s.ts)))}</span></td><td class="blank"></td></tr>`;
+    });
+  });
+
+  const html =
+`<!doctype html><meta charset="utf-8"><title>Cleaning worklist ${esc(RAKE.trainNo)}</title>
+<style>
+body{font:13px/1.4 Arial,sans-serif;margin:18px;color:#111}
+h1{font-size:17px;margin:0 0 2px}p.sub{margin:0 0 14px;color:#555;font-size:12px}
+table{border-collapse:collapse;width:100%}
+td,th{border:1px solid #999;padding:5px 6px;vertical-align:top}
+th{background:#eee;font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+img{width:110px;height:auto;display:block}
+td.n{width:26px;text-align:center;color:#666}
+td.blank{width:38%}
+tr.ch td{background:#333;color:#fff;font-weight:bold;letter-spacing:.06em;font-size:12px}
+.tm{color:#777;font-size:11px}
+@media print{body{margin:8mm} tr{break-inside:avoid}}
+</style>
+<h1>Interior cleaning — work required</h1>
+<p class="sub">Train ${esc(RAKE.trainNo)} &nbsp;·&nbsp; ${esc(RAKE.date)}
+${RAKE.sse ? " &nbsp;·&nbsp; " + esc(RAKE.sse) : ""} &nbsp;·&nbsp; ${before.length} points</p>
+<table><thead><tr><th>#</th><th>Before</th><th>Location / item</th><th>Action taken by contractor</th></tr></thead>
+<tbody>${rows}</tbody></table>`;
+
+  const url = URL.createObjectURL(new Blob([html], {type:"text/html"}));
+  window.open(url, "_blank");
+}
+
+/* ---------------- ZIP (store-only) ---------------- */
+const CRC_T = (()=>{ const t = new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; t[n]=c>>>0; }
+  return t; })();
+function crc32(u8){ let c = 0xFFFFFFFF;
+  for(let i=0;i<u8.length;i++) c = CRC_T[(c^u8[i]) & 0xFF] ^ (c>>>8);
+  return (c ^ 0xFFFFFFFF) >>> 0; }
+
+function dosTime(d){
+  return ((d.getHours() & 31) << 11) | ((d.getMinutes() & 63) << 5) | ((d.getSeconds() / 2) & 31);
+}
+function dosDate(d){
+  const y = Math.max(1980, d.getFullYear());
+  return (((y - 1980) & 127) << 9) | (((d.getMonth() + 1) & 15) << 5) | (d.getDate() & 31);
+}
+
+function makeZip(files){
+  const enc = new TextEncoder(), parts = [], central = [];
+  let offset = 0;
+  for(const f of files){
+    const name = enc.encode(f.name), crc = crc32(f.data), size = f.data.length;
+    const when = f.date || new Date();
+    const dt = dosTime(when), dd = dosDate(when);
+
+    const lh = new Uint8Array(30 + name.length), lv = new DataView(lh.buffer);
+    lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true);
+    lv.setUint16(10, dt, true); lv.setUint16(12, dd, true);
+    lv.setUint16(26, name.length, true);
+    lv.setUint32(14, crc, true); lv.setUint32(18, size, true); lv.setUint32(22, size, true);
+    lh.set(name, 30);
+    parts.push(lh, f.data);
+
+    const ch = new Uint8Array(46 + name.length), cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true);
+    cv.setUint16(12, dt, true); cv.setUint16(14, dd, true);
+    cv.setUint32(16, crc, true); cv.setUint32(20, size, true); cv.setUint32(24, size, true);
+    cv.setUint16(28, name.length, true); cv.setUint32(42, offset, true);
+    ch.set(name, 46);
+    central.push(ch);
+    offset += lh.length + size;
+  }
+  const cdSize = central.reduce((n,c)=>n+c.length, 0);
+  const eo = new Uint8Array(22), ev = new DataView(eo.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true); ev.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, eo], {type:"application/zip"});
+}
+
+async function buildZip(){
+  const all = (await allShots()).sort((a,b)=>a.ts-b.ts);
+  if(!all.length){ alert("Nothing to export yet."); return null; }
+  const byId = new Map(all.map(s=>[s.id,s]));
+  const used = new Set(), files = [];
+  const rows = [["file","train_no","coach_no","area","instance","item","phase","captured_at","pair_file","supervisor"]];
+
+  const nameFor = s=>{
+    let n = nameOf(s), i = 2;
+    while(used.has(n)){ n = nameOf(s).replace(/\.jpg$/, `_${i}.jpg`); i++; }
+    used.add(n); return n;
+  };
+  const names = new Map();
+  for(const s of all) names.set(s.id, nameFor(s));
+
+  for(const s of all){
+    files.push({ name: names.get(s.id), data: new Uint8Array(await s.blob.arrayBuffer()), date: new Date(s.ts) });
+    const partner = s.phase === "AFTER" && s.pairId ? names.get(s.pairId) || "" : "";
+    rows.push([ names.get(s.id), s.trainNo, s.coachNo, s.area, s.instance, s.sub, s.phase,
+                isoDT(new Date(s.ts)), partner, s.sse || "" ]);
+  }
+  const csv = rows.map(r=> r.map(v=>{
+    const t = String(v == null ? "" : v);
+    return /[",\n]/.test(t) ? '"' + t.replace(/"/g,'""') + '"' : t;
+  }).join(",")).join("\r\n");
+
+  const enc = new TextEncoder();
+  files.push({ name:"manifest.csv", data: enc.encode(csv) });
+  files.push({ name:"rake.json", data: enc.encode(JSON.stringify({
+    trainNo: RAKE.trainNo, date: RAKE.date, supervisor: RAKE.sse || "",
+    photos: all.length, exportedAt: isoDT(new Date())
+  }, null, 2)) });
+
+  return { blob: makeZip(files), name: `${RAKE.trainNo}_${RAKE.date}_cleaning.zip`, count: all.length };
+}
+
+/* ---------------- view switching ---------------- */
+function show(v){
+  view = v;
+  const map = { setup:"#vSetup", capture:"#vCapture", pairs:"#vPairs",
+                gallery:"#vGallery", export:"#vExport", settings:"#vSettings" };
+  Object.values(map).forEach(sel => $(sel).classList.add("hide"));
+  $(map[v]).classList.remove("hide");
+  $$("nav button").forEach(b => b.setAttribute("aria-current", String(b.dataset.v === v)));
+  $("#phaseWrap").classList.toggle("hide", v === "setup" || v === "settings");
+  refresh();
+}
+function refresh(){
+  if(view === "capture"){ renderChips(); renderNow(); renderStrip(); }
+  if(view === "pairs")   renderPairs();
+  if(view === "gallery") renderGallery();
+}
+
+/* ---------------- phase ---------------- */
+function setPhase(p){
+  S.phase = p; saveState();
+  $("#pB").setAttribute("aria-pressed", String(p === "BEFORE"));
+  $("#pA").setAttribute("aria-pressed", String(p === "AFTER"));
+  $("#shutter").className = "shutter " + (p === "BEFORE" ? "b" : "a");
+  $("#shutter").textContent = p === "BEFORE" ? "📷 TAKE BEFORE PHOTO" : "📷 TAKE AFTER PHOTO";
+  if(p === "AFTER"){
+    show("pairs");
+    toast("Pick a before photo to match", 3000);
+  }else if(view === "pairs"){
+    show("capture");
+  }else refresh();
+}
+
+/* ---------------- state ---------------- */
+function saveState(){
+  try{ localStorage.setItem("cp_state", JSON.stringify(S)); }catch(e){}
+}
+function loadState(){
+  try{ Object.assign(S, JSON.parse(localStorage.getItem("cp_state") || "{}")); }catch(e){}
+}
+function paintRake(){
+  if(!RAKE){ $("#tb").innerHTML = "—<small>no rake open</small>"; return; }
+  $("#tb").innerHTML = `Train ${esc(RAKE.trainNo)}<small>${esc(RAKE.date)}${RAKE.sse ? " · " + esc(RAKE.sse) : ""}</small>`;
+}
+
+/* ---------------- wiring ---------------- */
+$$("nav button").forEach(b => b.onclick = ()=>{
+  if(!RAKE){ show("setup"); return; }
+  show(b.dataset.v);
+});
+$("#pB").onclick = ()=> setPhase("BEFORE");
+$("#pA").onclick = ()=> setPhase("AFTER");
+$("#btnRake").onclick = ()=> show("setup");
+$("#btnSettings").onclick = ()=>{ $("#areaText").value = areasToText(AREAS); show("settings"); };
+
+$("#coach").addEventListener("input", e=>{
+  S.coachNo = e.target.value.replace(/\D/g,"").slice(0,6);
+  e.target.value = S.coachNo;
+  saveState(); renderNow(); renderStrip();
+});
+
+$("#btnOpen").onclick = async ()=>{
+  const t = $("#train").value.replace(/\D/g,"");
+  const d = $("#sdate").value;
+  if(!t){ alert("Enter the train number."); return; }
+  if(!d){ alert("Pick the date."); return; }
+  const existing = await getMeta("rake");
+  const shots = await allShots();
+  if(existing && shots.length && (existing.trainNo !== t || existing.date !== d)){
+    if(!confirm(`This phone still holds ${shots.length} photos for train ${existing.trainNo} (${existing.date}).\n\n` +
+                `Export them first, or they will be mixed into the new rake.\n\nOpen the new rake anyway?`)) return;
+  }
+  RAKE = { trainNo:t, date:d, sse: $("#sse").value.trim() };
+  await setMeta("rake", RAKE);
+  paintRake(); setPhase("BEFORE"); show("capture");
+};
+$("#btnResume").onclick = ()=> show("capture");
+
+$("#btnSaveAreas").onclick = async ()=>{
+  const a = textToAreas($("#areaText").value);
+  if(!a){ alert("Could not read that list. Use  Area: item, item"); return; }
+  AREAS = a; await setMeta("areas", AREAS);
+  if(!AREAS[S.area]){ S.area = Object.keys(AREAS)[0]; S.sub = AREAS[S.area][0]; saveState(); }
+  toast("Area list saved"); show("capture");
+};
+$("#btnResetAreas").onclick = ()=>{ $("#areaText").value = areasToText(DEFAULT_AREAS); };
+
+$("#btnWorklist").onclick = buildWorklist;
+
+$("#btnZip").onclick = async ()=>{
+  const b = $("#btnZip"); b.disabled = true; b.textContent = "Packing…";
+  try{
+    const z = await buildZip();
+    if(z){
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(z.blob); a.download = z.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
+      toast(`${z.count} photos packed`);
+    }
+  }catch(e){ alert("Export failed: " + e.message); }
+  finally{ b.disabled = false; b.textContent = "Download ZIP"; }
+};
+
+$("#btnShare").onclick = async ()=>{
+  const b = $("#btnShare"); b.disabled = true; b.textContent = "Packing…";
+  try{
+    const z = await buildZip();
+    if(z){
+      const f = new File([z.blob], z.name, {type:"application/zip"});
+      if(navigator.canShare && navigator.canShare({files:[f]})){
+        await navigator.share({ files:[f], title:z.name });
+      }else{
+        alert("Sharing is not available in this browser — use Download ZIP instead.");
+      }
+    }
+  }catch(e){ if(e.name !== "AbortError") alert("Share failed: " + e.message); }
+  finally{ b.disabled = false; b.textContent = "Share ZIP"; }
+};
+
+$("#btnClear").onclick = async ()=>{
+  const n = (await allShots()).length;
+  if(!confirm(`Delete all ${n} photos for train ${RAKE.trainNo}?\n\nThis cannot be undone. Only do this after CMIS has the ZIP.`)) return;
+  if(!confirm("Really delete? The photos are not stored anywhere else.")) return;
+  const o = await tx("shots","readwrite"); await req(o.clear());
+  urlCache.forEach(u=>URL.revokeObjectURL(u)); urlCache.clear();
+  toast("Rake cleared"); show("capture");
+};
+
+/* ---------------- boot ---------------- */
+(async function init(){
+  if(navigator.storage && navigator.storage.persist){
+    try{ await navigator.storage.persist(); }catch(e){}
+  }
+  AREAS = (await getMeta("areas")) || DEFAULT_AREAS;
+  loadState();
+  RAKE = await getMeta("rake");
+  paintRake();
+
+  const shots = await allShots();
+  if(RAKE){
+    $("#train").value = RAKE.trainNo; $("#sdate").value = RAKE.date; $("#sse").value = RAKE.sse || "";
+    $("#resumeInfo").textContent =
+      `Train ${RAKE.trainNo} · ${RAKE.date} — ${shots.length} photos on this phone` +
+      (shots.length ? ` (${shots.filter(s=>s.phase==="BEFORE").length} before, ${shots.filter(s=>s.phase==="AFTER").length} after)` : "");
+  }else{
+    $("#resumeCard").classList.add("hide");
+    $("#sdate").value = new Date().toISOString().slice(0,10);
+  }
+  $("#coach").value = S.coachNo || "";
+  setPhase(S.phase || "BEFORE");
+  show(RAKE ? "capture" : "setup");
+
+  if("serviceWorker" in navigator){
+    try{ await navigator.serviceWorker.register("sw.js"); }catch(e){}
+  }
+})();
+</script>
+</body>
+</html>
