@@ -1,6 +1,6 @@
 /* Offline shell for the Coach Cleaning Photo Record.
    Bump CACHE when index.html changes so phones pick up the new version. */
-const CACHE = "coachphoto-v1";
+const CACHE = "coachphoto-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", e => {

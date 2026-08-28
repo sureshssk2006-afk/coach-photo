@@ -255,8 +255,10 @@ nav .n{display:block;font-size:1.15rem;margin-bottom:.1rem;font-weight:800}
   <div class="card">
     <h3>2 · Send to CMIS</h3>
     <p class="note">All photos, correctly named, plus the manifest the deck generator reads.</p>
-    <button class="btn" id="btnShare" style="margin-top:.6rem">Share ZIP</button>
-    <button class="btn ghost" id="btnZip">Download ZIP</button>
+    <button class="btn" id="btnPack" style="margin-top:.6rem">Prepare ZIP</button>
+    <p class="note" id="packInfo"></p>
+    <button class="btn hide" id="btnShare" style="background:var(--after)">Share ZIP</button>
+    <button class="btn ghost hide" id="btnZip">Save to phone</button>
   </div>
   <div class="card">
     <h3>Finish rake</h3>
@@ -309,6 +311,7 @@ let S = { phase:"BEFORE", coachNo:"", area:"Toilet", instance:1, sub:"General" }
 let RAKE = null;            // {trainNo, date, sse, id}
 let pairTarget = null;      // before-shot id we are matching
 let reshootId = null;       // shot id being replaced
+let PACKED = null;          // prepared ZIP, held so Share can fire on its own tap
 let view = "capture";
 const urlCache = new Map();
 
@@ -621,7 +624,7 @@ async function openShot(id){
     if(a === "close"){ m.remove(); }
     if(a === "del"){
       if(confirm("Delete this photo?")){
-        urlCache.delete(s.id); await delShot(s.id); m.remove(); refresh();
+        urlCache.delete(s.id); await delShot(s.id); m.remove(); clearPack(); refresh();
       }
     }
     if(a === "reshoot"){
@@ -685,6 +688,7 @@ $("#picker").addEventListener("change", async e=>{
     alert("Could not save that photo — please take it again.\n\n" + err.message);
   }finally{
     reshootId = null; pairTarget = null;
+    clearPack();   // any prepared ZIP is now out of date
     btn.textContent = S.phase === "BEFORE" ? "📷 TAKE BEFORE PHOTO" : "📷 TAKE AFTER PHOTO";
     renderNow(); refresh();
   }
@@ -918,35 +922,61 @@ $("#btnResetAreas").onclick = ()=>{ $("#areaText").value = areasToText(DEFAULT_A
 
 $("#btnWorklist").onclick = buildWorklist;
 
-$("#btnZip").onclick = async ()=>{
-  const b = $("#btnZip"); b.disabled = true; b.textContent = "Packing…";
+/* Packing is slow, and navigator.share() is only allowed while the tap that
+   triggered it is still "active" (a few seconds in Chrome). So packing and
+   sharing must be two separate taps — sharing straight after an await is
+   refused as a permission error. */
+function clearPack(){
+  PACKED = null;
+  const i = $("#packInfo"); if(i) i.textContent = "";
+  const s = $("#btnShare"), z = $("#btnZip"), p = $("#btnPack");
+  if(s) s.classList.add("hide");
+  if(z) z.classList.add("hide");
+  if(p) p.textContent = "Prepare ZIP";
+}
+
+$("#btnPack").onclick = async ()=>{
+  const b = $("#btnPack");
+  b.disabled = true; b.textContent = "Packing…"; $("#packInfo").textContent = "";
   try{
     const z = await buildZip();
     if(z){
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(z.blob); a.download = z.name;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
-      toast(`${z.count} photos packed`);
+      PACKED = z;
+      PACKED.file = new File([z.blob], z.name, {type:"application/zip"});
+      $("#packInfo").textContent =
+        `${z.count} photos · ${(z.blob.size/1048576).toFixed(1)} MB · ${z.name}`;
+      $("#btnZip").classList.remove("hide");
+      if(navigator.canShare && navigator.canShare({files:[PACKED.file]})){
+        $("#btnShare").classList.remove("hide");
+      }else{
+        $("#packInfo").textContent += " — this browser can't share files, use Save to phone";
+      }
+      b.textContent = "Re-pack";
     }
-  }catch(e){ alert("Export failed: " + e.message); }
-  finally{ b.disabled = false; b.textContent = "Download ZIP"; }
+  }catch(e){
+    alert("Could not pack: " + e.message);
+    b.textContent = "Prepare ZIP";
+  }finally{ b.disabled = false; }
 };
 
-$("#btnShare").onclick = async ()=>{
-  const b = $("#btnShare"); b.disabled = true; b.textContent = "Packing…";
-  try{
-    const z = await buildZip();
-    if(z){
-      const f = new File([z.blob], z.name, {type:"application/zip"});
-      if(navigator.canShare && navigator.canShare({files:[f]})){
-        await navigator.share({ files:[f], title:z.name });
-      }else{
-        alert("Sharing is not available in this browser — use Download ZIP instead.");
-      }
-    }
-  }catch(e){ if(e.name !== "AbortError") alert("Share failed: " + e.message); }
-  finally{ b.disabled = false; b.textContent = "Share ZIP"; }
+/* share() is the first statement — nothing may be awaited before it */
+$("#btnShare").onclick = ()=>{
+  if(!PACKED) return;
+  navigator.share({ files:[PACKED.file], title: PACKED.name })
+    .catch(e=>{
+      if(e.name === "AbortError") return;
+      alert("Share failed (" + e.name + "): " + e.message +
+            "\n\nUse “Save to phone”, then attach the file from your Downloads folder.");
+    });
+};
+
+$("#btnZip").onclick = ()=>{
+  if(!PACKED) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(PACKED.blob); a.download = PACKED.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
+  toast("Saved to your Downloads folder");
 };
 
 $("#btnClear").onclick = async ()=>{
@@ -955,6 +985,7 @@ $("#btnClear").onclick = async ()=>{
   if(!confirm("Really delete? The photos are not stored anywhere else.")) return;
   const o = await tx("shots","readwrite"); await req(o.clear());
   urlCache.forEach(u=>URL.revokeObjectURL(u)); urlCache.clear();
+  clearPack();
   toast("Rake cleared"); show("capture");
 };
 
